@@ -132,7 +132,7 @@ const WhatWeDo = () => {
       `}</style>
 
       <div className="relative z-10 max-w-7xl mx-auto w-full">
-        <h2 className="text-7xl font-extrabold mb-4 text-purple-800 font-lora">
+        <h2 className="text-6xl font-extrabold mb-4 text-purple-800 font-lora">
           What We Do..!!
         </h2>
         <p className="text-lg text-slate-600 mb-16 max-w-3xl mx-auto font-inter">
