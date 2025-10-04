@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import cloudImg from "../images/cloud.png"; 
 import soilhealthImg from "../images/soilhealth.png";
 import time_plantImg from "../images/time_plant.png";
+import crop_priceImg from "../images/crop_price.png";
+import fire_alertImg from "../images/fire_alert.png";
+import call_botImg from "../images/call_bot.png";
 
 const features = [
   {
@@ -17,7 +20,7 @@ const features = [
   {
     title: "Crop Price Tracking & Alerts",
     desc: "We provide real-time tracking of crop prices, including alerts for price fluctuations, to help you decide the best time to buy or sell crops.",
-    img: "/price.png", // replace with your icon
+    img: crop_priceImg, // replace with your icon
   },
   {
     title: "Best Time to Plant Seeds",
@@ -27,12 +30,12 @@ const features = [
   {
     title: "Fire Alert with Emergency Call",
     desc: "Our fire alert system detects fires, sends instant alerts, and contacts emergency services automatically—no SIM card required—for swift assistance.",
-    img: "/fire.png", // replace with your icon
+    img: fire_alertImg, // replace with your icon
   },
   {
     title: "Multilingual Call Bot",
     desc: "Our AI-powered call bot can speak many languages and assist with all your farming-related issues and queries.",
-    img: "/bot.png", // replace with your icon
+    img: call_botImg, // replace with your icon
   },
 ];
 
