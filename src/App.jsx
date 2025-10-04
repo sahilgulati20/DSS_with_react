@@ -1,7 +1,7 @@
 // src/App.jsx
 import React from "react";
-import Home from "./pages/Home";
-import About from "./pages/About";
+import Home from "./sections/Home";
+import About from "./sections/About";
 
 function App() {
   return (
