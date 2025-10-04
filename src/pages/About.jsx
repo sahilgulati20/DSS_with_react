@@ -1,15 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
+import cloudImg from "../images/cloud.png"; 
+import soilhealthImg from "../images/soilhealth.png";
+import time_plantImg from "../images/time_plant.png";
 
 const features = [
   {
     title: "Real-time Weather Forecast & Alerts",
     desc: "We provide accurate, real-time weather forecasts, along with alerts for adverse weather conditions to help farmers make informed decisions.",
-    img: "/weather.png", // replace with your icon
+    img: cloudImg, // replace with your icon
   },
   {
     title: "Soil Health Monitoring",
     desc: "With the help of sensors, we monitor soil quality and provide actionable insights to improve crop health and yield.",
-    img: "/soil.png", // replace with your icon
+    img: soilhealthImg, // replace with your icon
   },
   {
     title: "Crop Price Tracking & Alerts",
@@ -19,7 +22,7 @@ const features = [
   {
     title: "Best Time to Plant Seeds",
     desc: "Based on weather and soil health conditions, we advise on the optimal time to plant seeds for the best crop yield.",
-    img: "/plant.png", // replace with your icon
+    img: time_plantImg, // replace with your icon
   },
   {
     title: "Fire Alert with Emergency Call",
