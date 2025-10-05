@@ -3,7 +3,7 @@ import React from "react";
 import Home from "./sections/Home";
 import About from "./sections/About";
 import Services from "./sections/Our_service";
-import Contact from "./sections/contactus";
+import Contactus from "./sections/Contactus";
 
 function App() {
   return (
@@ -11,7 +11,7 @@ function App() {
       <Home />
       <About />
       <Services />
-      <Contact />
+      <Contactus />
     </div>
   );
 }
