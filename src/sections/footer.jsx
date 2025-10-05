@@ -2,7 +2,7 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <footer className="bg-purple-600 text-white py-4 pt-0"> {/* ⬅️ reduced from py-14 */}
+    <footer className="bg-sky-500 text-white py-4 pt-0"> {/* ⬅️ reduced from py-14 */}
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-10 scale-95"> {/* ⬅️ shrink whole content */}
         
         {/* Left Side - Logo + Project Info */}
