@@ -1,32 +1,42 @@
 import React, { useState, useEffect, useRef } from 'react';
 import service_weather from "../images/service_weather.png";
+import service_soilhealth from "../images/service_soilhealth.png";
+import service_cropprices from "../images/service_cropprices.png";
+import service_plantseed from "../images/service_plantseed.png";
+import service_fire from "../images/service_fire.png";
+import service_callbot from "../images/service_callbot.jpg";
 
 const services = [
   {
     title: "Real-time Weather",
-    description: "The system provides updates of the surrounding weather and it offers real-time monitoring of the room's temperature and humidity, ensuring users stay informed about both external and internal environmental conditions.",
+    description: "The system provides updates of the surrounding weather and it offers real-time monitoring of the room’s temperature and humidity, ensuring users stay informed about both external and internal environmental conditions.",
     imageUrl: service_weather
   },
   {
     title: "Soil Health Monitoring",
-    description: "With the help of sensors, we monitor soil quality and provide actionable insights to improve crop health and yield, ensuring optimal growth conditions.",
-    imageUrl: "https://images.unsplash.com/photo-1591854333068-2a74c6536423?q=80&w=1974&auto=format&fit=crop"
+    description: "The system uses sensors to analyze soil and recommend fertilizers or necessary nutrient adjustments. It also provides precise fertilizer application guidelines, such as the exact quantity required for different setups for example, recommendations for a 10 liter pot ensuring optimal plant growth while minimizing waste.",
+    imageUrl: service_soilhealth
   },
   {
     title: "Crop Price Tracking",
-    description: "We provide real-time tracking of crop prices, including alerts for price fluctuations, to help you decide the best time to buy or sell crops for maximum profitability.",
-    imageUrl: "https://images.unsplash.com/photo-1620714223084-86c9df242d5d?q=80&w=2070&auto=format&fit=crop"
+    description: "Provides real-time average crop prices to help users to plan their sales effectively.",
+    imageUrl: service_cropprices
   },
   {
     title: "Planting Guidance",
-    description: "Based on weather and soil health conditions, we advise on the optimal time to plant seeds for the best crop yield and a successful harvest.",
-    imageUrl: "https://images.unsplash.com/photo-1492496913980-501348b61469?q=80&w=1974&auto=format&fit=crop"
+    description: "System suggests the best time to plant seeds by analyzing weather and soil conditions. It helps the user to make better decisions.",
+    imageUrl: service_plantseed
   },
   {
     title: "Fire Alert System",
-    description: "Our fire alert system detects fires, sends instant alerts, and contacts emergency services automatically—no SIM card required—for swift assistance.",
-    imageUrl: "https://images.unsplash.com/photo-1561336244-1455136b8535?q=80&w=2070&auto=format&fit=crop"
+    description: "The system detects fire risks in farming areas and automatically calls the user and the nearest fire station. It also provides the precise fire location on a dedicated website.",
+    imageUrl: service_fire
   },
+  {
+    title: "Your call buddy",
+    description: "An AI-powered call bot that can speak multiple languages and assist with all your farming-related issues and queries.",
+    imageUrl: service_callbot
+  }
 ];
 
 const OurServices = () => {
