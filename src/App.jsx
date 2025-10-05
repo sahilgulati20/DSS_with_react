@@ -4,6 +4,7 @@ import Home from "./sections/Home";
 import About from "./sections/About";
 import Services from "./sections/Our_service";
 import Contact from "./sections/Contact_us";
+import Footer from "./sections/footer";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <About />
       <Services />
       <Contact />
+      <Footer />
     </div>
   );
 }
