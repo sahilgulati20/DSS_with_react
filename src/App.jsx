@@ -3,7 +3,7 @@ import React from "react";
 import Home from "./sections/Home";
 import About from "./sections/About";
 import Services from "./sections/Our_service";
-import Contactus from "./sections/Contactus";
+import Contactus from "./sections/contactus";
 
 function App() {
   return (
