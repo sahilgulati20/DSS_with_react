@@ -2,7 +2,7 @@
 import React from "react";
 import Home from "./sections/Home";
 import About from "./sections/About";
-import Services from "./sections/services";
+import Services from "./sections/Our_service";
 
 function App() {
   return (
