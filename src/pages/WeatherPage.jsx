@@ -1,14 +1,4 @@
-import React, { useEffect, useRef } from "react";
-
-// Mock data
-const weatherData = {
-  location: "Meerut, India",
-  temperature: 34,
-  condition: "Haze",
-  feelsLike: 38,
-  humidity: 60,
-  windSpeed: 10,
-};
+import React, { useEffect, useRef, useState } from "react";
 
 const roomData = {
   temperature: 24,
@@ -17,10 +7,14 @@ const roomData = {
 
 const WeatherModule = () => {
   const cardsRef = useRef([]);
+  const [weatherData, setWeatherData] = useState(null);
+  const [error, setError] = useState(null);
+  const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
 
+  // 🔹 3D Hover Effect
   useEffect(() => {
     const handleMouseMove = (e) => {
-      cardsRef.current.forEach(card => {
+      cardsRef.current.forEach((card) => {
         if (!card) return;
         const rect = card.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -30,30 +24,69 @@ const WeatherModule = () => {
         card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
       });
     };
-    
+
     const handleMouseLeave = () => {
-        cardsRef.current.forEach(card => {
-            if (!card) return;
-            card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
-        });
+      cardsRef.current.forEach((card) => {
+        if (!card) return;
+        card.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg)";
+      });
     };
 
-    const container = document.querySelector('.cards-container');
+    const container = document.querySelector(".cards-container");
     if (container) {
-        container.addEventListener("mousemove", handleMouseMove);
-        container.addEventListener("mouseleave", handleMouseLeave);
+      container.addEventListener("mousemove", handleMouseMove);
+      container.addEventListener("mouseleave", handleMouseLeave);
     }
-    
+
     return () => {
       if (container) {
-          container.removeEventListener("mousemove", handleMouseMove);
-          container.removeEventListener("mouseleave", handleMouseLeave);
+        container.removeEventListener("mousemove", handleMouseMove);
+        container.removeEventListener("mouseleave", handleMouseLeave);
       }
     };
   }, []);
 
+  // 🔹 Fetch Live Weather
+  useEffect(() => {
+    if (!apiKey) {
+      setError("Missing API key. Please check .env file.");
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      setError("Geolocation not supported by browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const response = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`
+          );
+
+          if (!response.ok) throw new Error("Failed to fetch weather");
+
+          const data = await response.json();
+          setWeatherData({
+            location: `${data.name}, ${data.sys.country}`,
+            temperature: Math.round(data.main.temp),
+            condition: data.weather[0].main,
+            feelsLike: Math.round(data.main.feels_like),
+            humidity: data.main.humidity,
+            windSpeed: data.wind.speed,
+          });
+        } catch (err) {
+          setError("Failed to fetch weather: " + err.message);
+        }
+      },
+      () => setError("Unable to get device location. Please allow location access.")
+    );
+  }, [apiKey]);
+
   const handleNavigation = (path) => {
-    alert(`Navigating to ${path}...`);
+    window.location.href = path; // redirect to another page
   };
 
   return (
@@ -69,9 +102,8 @@ const WeatherModule = () => {
         .light-aurora-bg {
           position: absolute;
           top: 0; left: 0; right: 0; bottom: 0;
-          background-color: #f8fafc; /* slate-50 */
-          background-image: 
-            linear-gradient(125deg, #e0f2fe, #f0f9ff, #f5f3ff);
+          background-color: #f8fafc;
+          background-image: linear-gradient(125deg, #e0f2fe, #f0f9ff, #f5f3ff);
           background-size: 400% 400%;
           animation: light-aurora 15s ease infinite;
           z-index: -1;
@@ -85,7 +117,7 @@ const WeatherModule = () => {
 
         .weather-card {
             background: white;
-            border: 1px solid #e2e8f0; /* slate-200 */
+            border: 1px solid #e2e8f0;
             transform-style: preserve-3d;
             transition: transform 0.1s ease-out;
             position: relative;
@@ -130,13 +162,13 @@ const WeatherModule = () => {
             color: white;
         }
         .weather-card:hover .card-content .subtext {
-            color: #d1d5db; /* gray-300 */
+            color: #d1d5db;
         }
       `}</style>
 
       <div className="light-aurora-bg"></div>
-      
-      {/* Enhanced Header */}
+
+      {/* Header */}
       <div className="relative z-10 w-full max-w-5xl mx-auto text-center mb-16">
         <h2 className="text-6xl md:text-7xl font-extrabold font-lora text-slate-800 mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-sky-400 drop-shadow-sm">
           Weather Module
@@ -148,32 +180,57 @@ const WeatherModule = () => {
 
       {/* Cards */}
       <div className="cards-container grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto z-10">
-        {/* Card 1: Surrounding Weather */}
+        {/* Surrounding Weather Card */}
         <div
-          ref={el => cardsRef.current[0] = el}
+          ref={(el) => (cardsRef.current[0] = el)}
           className="weather-card weather-bg group h-[480px] flex flex-col justify-between rounded-3xl p-8 cursor-pointer shadow-lg"
           onClick={() => handleNavigation("/surrounding-weather")}
         >
-           <div className="card-content text-slate-800 text-left">
+          {error ? (
+            <div className="text-center text-red-500 font-semibold">{error}</div>
+          ) : !weatherData ? (
+            <div className="text-center text-slate-500 font-medium">Fetching weather...</div>
+          ) : (
+            <>
+              <div className="card-content text-slate-800 text-left">
                 <h3 className="text-3xl font-bold font-lora">{weatherData.condition}</h3>
                 <p className="subtext text-slate-500">{weatherData.location}</p>
-            </div>
-            <div className="card-content text-left text-slate-800">
-                 <div className="flex justify-between items-center mb-4">
-                    <span className="text-7xl font-bold">{weatherData.temperature}°C</span>
-                     <svg className="w-20 h-20 subtext text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-                 </div>
-                <div className="text-sm space-y-2 subtext text-slate-500 border-t border-slate-200 pt-4">
-                  <div className="flex justify-between"><span>Feels like</span> <strong>{weatherData.feelsLike}°C</strong></div>
-                  <div className="flex justify-between"><span>Humidity</span> <strong>{weatherData.humidity}%</strong></div>
-                  <div className="flex justify-between"><span>Wind</span> <strong>{weatherData.windSpeed} km/h</strong></div>
+              </div>
+              <div className="card-content text-left text-slate-800">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-7xl font-bold">{weatherData.temperature}°C</span>
+                  <svg
+                    className="w-20 h-20 subtext text-slate-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+                  </svg>
                 </div>
-           </div>
+                <div className="text-sm space-y-2 subtext text-slate-500 border-t border-slate-200 pt-4">
+                  <div className="flex justify-between">
+                    <span>Feels like</span> <strong>{weatherData.feelsLike}°C</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Humidity</span> <strong>{weatherData.humidity}%</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Wind</span> <strong>{weatherData.windSpeed} km/h</strong>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Card 2: Room Conditions */}
+        {/* Room Conditions Card */}
         <div
-          ref={el => cardsRef.current[1] = el}
+          ref={(el) => (cardsRef.current[1] = el)}
           className="weather-card room-bg group h-[480px] flex flex-col justify-between rounded-3xl p-8 cursor-pointer shadow-lg"
           onClick={() => handleNavigation("/room-conditions")}
         >
@@ -184,13 +241,33 @@ const WeatherModule = () => {
           <div className="card-content text-slate-800">
             <div className="flex items-center justify-around text-center">
               <div className="w-1/2">
-                <svg className="w-16 h-16 mx-auto mb-2 subtext text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>
+                <svg
+                  className="w-16 h-16 mx-auto mb-2 subtext text-slate-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
+                </svg>
                 <p className="text-5xl font-bold">{roomData.temperature}°C</p>
                 <p className="subtext text-slate-500 mt-1">Temperature</p>
               </div>
               <div className="w-px h-24 bg-slate-200"></div>
               <div className="w-1/2">
-                <svg className="w-16 h-16 mx-auto mb-2 subtext text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+                <svg
+                  className="w-16 h-16 mx-auto mb-2 subtext text-slate-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+                </svg>
                 <p className="text-5xl font-bold">{roomData.humidity}%</p>
                 <p className="subtext text-slate-500 mt-1">Humidity</p>
               </div>
@@ -203,4 +280,3 @@ const WeatherModule = () => {
 };
 
 export default WeatherModule;
-
