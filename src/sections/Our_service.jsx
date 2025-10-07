@@ -1,4 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+
+// Images
 import service_weather from "../images/service_weather.png";
 import service_soilhealth from "../images/service_soilhealth.png";
 import service_cropprices from "../images/service_cropprices.png";
@@ -12,18 +15,21 @@ const services = [
     description:
       "The system provides updates of the surrounding weather and offers real-time monitoring of temperature and humidity, keeping users informed about both external and internal environmental conditions.",
     imageUrl: service_weather,
+    link: "/weather",
   },
   {
     title: "Soil Health Monitoring",
     description:
       "The system uses sensors to analyze soil and recommend fertilizers or nutrient adjustments. It also provides precise guidelines for fertilizer application, ensuring optimal growth and minimal waste.",
     imageUrl: service_soilhealth,
+    link: "/soil-health",
   },
   {
     title: "Crop Price Tracking",
     description:
       "Provides real-time average crop prices to help farmers plan their sales effectively and make informed market decisions.",
     imageUrl: service_cropprices,
+    link: "/crop-prices",
   },
   {
     title: "Planting Guidance",
@@ -89,6 +95,7 @@ const OurServices = () => {
         </p>
       </div>
 
+      {/* Main Layout */}
       <div className="container mx-auto flex flex-col md:flex-row gap-10 md:gap-16">
         {/* Left Column (Sticky Image) */}
         <div className="w-full md:w-1/2 md:h-[70vh] sticky top-24">
@@ -128,9 +135,15 @@ const OurServices = () => {
                 <p className="text-sm sm:text-base md:text-lg text-slate-300 leading-relaxed">
                   {service.description}
                 </p>
-                <button className="mt-6 bg-red-500 text-white font-bold py-2 sm:py-3 px-6 sm:px-8 rounded-full hover:bg-red-600 transition-transform transform hover:scale-105 duration-300 text-sm sm:text-base">
-                  Learn More
-                </button>
+
+                {/* ✅ Learn More button only if link exists */}
+                {service.link && (
+                  <Link to={service.link} className="inline-block mt-6">
+                    <button className="bg-red-500 text-white font-bold py-2 sm:py-3 px-6 sm:px-8 rounded-full hover:bg-red-600 transition-transform transform hover:scale-105 duration-300 text-sm sm:text-base cursor-pointer">
+                      Learn More
+                    </button>
+                  </Link>
+                )}
               </div>
             </div>
           ))}
