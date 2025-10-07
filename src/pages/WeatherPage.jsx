@@ -1,14 +1,28 @@
+// src/sections/WeatherPage.jsx
 import React, { useEffect, useRef, useState } from "react";
+import { db, ref, onValue } from "../firebaseConfig"; // Firebase import
 
-const roomData = {
-  temperature: 24,
-  humidity: 55,
-};
-
-const WeatherModule = () => {
+const WeatherPage = () => {
   const cardsRef = useRef([]);
   const [weatherData, setWeatherData] = useState(null);
   const [error, setError] = useState(null);
+
+  // 🔹 Live Room Data from Firebase
+  const [roomData, setRoomData] = useState({ temperature: 0, humidity: 0 });
+
+  useEffect(() => {
+    const roomRef = ref(db, "dht11");
+    onValue(roomRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setRoomData({
+          temperature: data.temperature ?? 0,
+          humidity: data.humidity ?? 0,
+        });
+      }
+    });
+  }, []);
+
   const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
 
   // 🔹 3D Hover Effect
@@ -252,7 +266,7 @@ const WeatherModule = () => {
                 >
                   <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
                 </svg>
-                <p className="text-5xl font-bold">{roomData.temperature}°C</p>
+                <p className="text-4xl font-bold">{roomData.temperature}°C</p>
                 <p className="subtext text-slate-500 mt-1">Temperature</p>
               </div>
               <div className="w-px h-24 bg-slate-200"></div>
@@ -268,7 +282,7 @@ const WeatherModule = () => {
                 >
                   <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
                 </svg>
-                <p className="text-5xl font-bold">{roomData.humidity}%</p>
+                <p className="text-4xl font-bold">{roomData.humidity}%</p>
                 <p className="subtext text-slate-500 mt-1">Humidity</p>
               </div>
             </div>
@@ -279,4 +293,4 @@ const WeatherModule = () => {
   );
 };
 
-export default WeatherModule;
+export default WeatherPage;
