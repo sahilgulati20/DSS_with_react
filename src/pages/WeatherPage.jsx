@@ -11,7 +11,7 @@ const WeatherPage = () => {
   const [roomData, setRoomData] = useState({ temperature: 0, humidity: 0 });
 
   useEffect(() => {
-    const roomRef = ref(db, "dht11");
+    const roomRef = ref(db, "sensor_data");
     onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {

@@ -29,7 +29,7 @@ const services = [
     description:
       "Provides real-time average crop prices to help farmers plan their sales effectively and make informed market decisions.",
     imageUrl: service_cropprices,
-    link: "/crop-prices",
+    link: "/crops",
   },
   {
     title: "Planting Guidance",
