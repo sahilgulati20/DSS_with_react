@@ -1,10 +1,9 @@
 // src/sections/WeatherPage.jsx
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { db, ref, onValue } from "../firebaseConfig"; // Firebase import
 
 const WeatherPage = () => {
-  const navigate = useNavigate();
   const cardsRef = useRef([]);
   const [weatherData, setWeatherData] = useState(null);
   const [error, setError] = useState(null);
@@ -100,10 +99,6 @@ const WeatherPage = () => {
       () => setError("Unable to get device location. Please allow location access.")
     );
   }, [apiKey]);
-
-  const handleNavigation = (path) => {
-    navigate(path); // Use React Router navigation
-  };
 
   return (
     <section
@@ -245,10 +240,10 @@ const WeatherPage = () => {
         </Link>
 
         {/* Room Conditions Card */}
-        <div
+        <Link
+          to="/room-temp"
           ref={(el) => (cardsRef.current[1] = el)}
           className="weather-card room-bg group h-[480px] flex flex-col justify-between rounded-3xl p-8 cursor-pointer shadow-lg"
-          onClick={() => handleNavigation("/room-conditions")}
         >
           <div className="card-content text-slate-800 text-left">
             <h3 className="text-3xl font-bold font-lora">Room Conditions</h3>
@@ -289,7 +284,7 @@ const WeatherPage = () => {
               </div>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
     </section>
   );

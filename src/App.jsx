@@ -12,6 +12,7 @@ import Footer from "./sections/footer";
 import Crops from "./components/Crops";
 import Frame from "./components/Frame";
 import SurroundingWeather from "./weather_components/surrounding_weather";
+import RoomTemp from "./weather_components/room_temp";
 
 // Service detail pages (you'll create these)
 import WeatherPage from "./pages/WeatherPage";
@@ -40,6 +41,9 @@ function App() {
         <Route path="/weather" element={<WeatherPage />} />
         <Route path="/surrounding-weather" element={<SurroundingWeather />} />
         <Route path="/surrounding_weather" element={<SurroundingWeather />} />
+
+        <Route path="/room-temp" element={<RoomTemp />} />
+        
         
         {/* Catch all route - redirect to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
