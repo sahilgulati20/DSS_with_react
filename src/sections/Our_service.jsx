@@ -36,18 +36,21 @@ const services = [
     description:
       "Analyzes weather and soil conditions to suggest the best time to plant seeds, helping users make smarter cultivation decisions.",
     imageUrl: service_plantseed,
+    link: "/plant-seed",
   },
   {
     title: "Fire Alert System",
     description:
       "Detects fire risks in farming areas and automatically alerts users and nearby fire stations. It also provides the exact fire location on a dedicated website.",
     imageUrl: service_fire,
+    link: "/fire-alert",
   },
   {
     title: "Your Call Buddy",
     description:
       "An AI-powered multilingual call bot that assists with all farming-related queries and issues in your preferred language.",
     imageUrl: service_callbot,
+    link: "/call-bot",
   },
 ];
 

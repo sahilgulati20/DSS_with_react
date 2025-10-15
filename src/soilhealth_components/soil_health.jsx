@@ -1,43 +1,51 @@
-// src/soilhealth_components/soil_health.jsx
 import React, { useState, useEffect } from "react";
-import { db, ref, onValue } from "../firebaseConfig"; // Clean Firebase import
+import { db, ref, onValue } from "../firebaseConfig";
+const bgImage = "crophealth_bg.png";
 
-// --- Gemini API Key from .env ---
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
-// --- Loading Screen ---
-const LoadingScreen = ({ cropName }) => (
-  <div className="flex flex-col items-center justify-center min-h-screen bg-emerald-50/50 backdrop-blur-sm">
-    <style>{`
-      .animate-seed-drop { animation: seed-drop 3s ease-in-out infinite; }
-      @keyframes seed-drop { 0% { transform: translateY(0); opacity: 1; } 20% { transform: translateY(45px); opacity: 1; } 30% { transform: translateY(45px); opacity: 0; } 100% { transform: translateY(45px); opacity: 0; } }
-      .animate-loader-sprout { transform-origin: bottom center; opacity: 0; animation: sprout 3s ease-out infinite; animation-delay: 0.8s; }
-      @keyframes sprout { 0% { transform: scaleY(0); opacity: 0; } 20% { transform: scaleY(1); opacity: 1; } 80% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
-    `}</style>
-    <div className="relative w-48 h-48">
-      <svg className="w-full h-full" viewBox="0 0 100 100">
-        <path d="M 20 80 H 80" stroke="#a1887f" strokeWidth="4" strokeLinecap="round" />
-        <circle cx="50" cy="30" r="5" fill="#8d6e63" className="animate-seed-drop" />
-        <g className="animate-loader-sprout">
-          <path d="M 50 80 V 60 C 50 50 55 50 55 60 V 70" stroke="#4ade80" strokeWidth="4" fill="none" strokeLinecap="round"/>
-          <path d="M 50 80 V 60 C 50 50 45 50 45 60 V 70" stroke="#86efac" strokeWidth="4" fill="none" strokeLinecap="round"/>
-        </g>
-      </svg>
+// --- Circle Animation Component ---
+const NutrientCircle = ({ label, value, color }) => {
+  const percent = Math.min(value, 100);
+  return (
+    <div className="flex flex-col items-center animate-fade-in">
+      <div className="relative w-24 h-24 mb-2">
+        <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
+          <path
+            className="text-gray-200"
+            stroke="currentColor"
+            strokeWidth="3.8"
+            fill="none"
+            d="M18 2.0845 a15.9155 15.9155 0 0 1 0 31.831 a15.9155 15.9155 0 0 1 0 -31.831"
+          />
+          <path
+            stroke={color}
+            strokeWidth="3.8"
+            strokeDasharray={`${percent}, 100`}
+            strokeLinecap="round"
+            fill="none"
+            d="M18 2.0845 a15.9155 15.9155 0 0 1 0 31.831 a15.9155 15.9155 0 0 1 0 -31.831"
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center text-lg font-semibold text-gray-700">
+          {value}
+        </div>
+      </div>
+      <p className="text-green-800 font-semibold">{label}</p>
     </div>
-    <p className="text-green-700 text-lg font-medium mt-4">
-      Analyzing soil for <span className="font-bold capitalize">{cropName}</span>...
-    </p>
-  </div>
-);
+  );
+};
 
+// --- Main Component ---
 export default function SoilHealth() {
   const [soilData, setSoilData] = useState(null);
-  const [analysis, setAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
   const [crop, setCrop] = useState("");
   const [cropInput, setCropInput] = useState("");
+  const [structuredData, setStructuredData] = useState(null);
+  const [showCircles, setShowCircles] = useState(false);
 
-  // --- Fetch soil data from Firebase ---
+  // Fetch soil data
   useEffect(() => {
     const soilRef = ref(db, "npk");
     const unsubscribe = onValue(soilRef, (snapshot) => {
@@ -47,235 +55,208 @@ export default function SoilHealth() {
     return () => unsubscribe();
   }, []);
 
-  // --- Trigger analysis when crop changes ---
-  useEffect(() => {
-    if (soilData && crop) {
-      fetchAnalysis();
-    }
-  }, [crop]); // soilData update alone won’t trigger analysis
-
-  const fetchAnalysis = async () => {
-    if (!soilData || !crop) return;
+  // --- Analyze soil using Gemini ---
+  const analyzeSoil = async () => {
+    if (!soilData) return;
     setLoading(true);
+    setShowCircles(true);
 
     const prompt = `
-You are an expert agronomist AI. Analyze this soil for {crop}. The soil data is as follows:
+You are an expert agronomist AI.
 
-- Nitrogen: {soilData.n}
-- Phosphorus: {soilData.p}
-- Potassium: {soilData.k}
-- pH: {soilData.ph}
-- Moisture: {soilData.moisture}
-- Temperature: {soilData.temperature}
+Analyze the following soil parameters **for growing ${crop}** in a 10-liter flower pot.
+Compare each parameter with the optimal requirements for ${crop} and identify
+whether it is Low, Medium, or High relative to ideal values.
 
-Tasks:
+Soil data:
+- Nitrogen (N): ${soilData.n}
+- Phosphorus (P): ${soilData.p}
+- Potassium (K): ${soilData.k}
+- pH: ${soilData.ph}
+- Moisture: ${soilData.moisture}
+- Temperature: ${soilData.temperature}
 
-1. Evaluate if this soil is suitable for growing {crop} in a **10-liter flower pot**.
-2. Suggest precise improvements for a 10-liter pot.
-3. For each nutrient (N, P, K), classify as Low / Medium / High.
-4. Provide exact amounts (in grams or liters) of organic and inorganic materials to add for one 10-liter pot.
-5. Provide recommendations in a **structured bullet format** as below:
+Based on this comparison:
+1. Give a short summary describing the soil’s overall suitability for ${crop}.
+2. State the soil condition as one of: Good / Moderate / Poor.
+3. List nutrient levels (N, P, K, pH, Moisture, Temperature) and whether each is low, normal, or high for ${crop}.
+4. Recommend **3–4 organic** and **3–4 inorganic** amendments (with approximate quantities suitable for a 10-liter pot)
+   to improve the soil to optimal range for ${crop}.
+5. Keep the response **concise and formatted** exactly as below:
 
----
-SOIL CONDITION:
-Nitrogen: [Low/Medium/High]
-Phosphorus: [Low/Medium/High]
-Potassium: [Low/Medium/High]
-pH: [Acidic/Neutral/Alkaline]
-Moisture: [Low/Medium/High]
+The soil condition for ${crop} is: [Good/Moderate/Poor]
 
-SUITABILITY: [Yes/No] - [short reason]
+Nitrogen (N): [Low/Medium/High]
+Phosphorus (P): [Low/Medium/High]
+Potassium (K): [Low/Medium/High]
+pH: [value or level]
+Moisture: [value or level]
+Temperature: [value or level]
 
-ORGANIC IMPROVEMENTS (for 10-liter pot):
-1. [Material] - [Exact amount in grams or liters]
-2. [Material] - [Exact amount in grams or liters]
-3. [Material] - [Exact amount in grams or liters]
+To improve the soil for ${crop} (10-liter pot):
 
-INORGANIC IMPROVEMENTS (for 10-liter pot):
-1. [Material] - [Exact amount in grams or liters]
-2. [Material] - [Exact amount in grams or liters]
-3. [Material] - [Exact amount in grams or liters]
----
-Notes:
-- Keep each item concise.
-- No long paragraphs.
-- Only actionable recommendations with quantities.
-- Use commonly available fertilizers and soil amendments.
+Organic:
+1. [Material - Quantity]
+2. [Material - Quantity]
+3. [Material - Quantity]
+
+Inorganic:
+1. [Material - Quantity]
+2. [Material - Quantity]
+3. [Material - Quantity]
 `;
 
     try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`,
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-          }),
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
         }
       );
-      const result = await response.json();
-      const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "No analysis available.";
-      setAnalysis(text);
-    } catch (error) {
-      console.error("Error fetching Gemini response:", error);
-      setAnalysis("Error analyzing soil data.");
+      const data = await res.json();
+      const text =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "No structured response.";
+
+      const parsed = parseGeminiResponse(text);
+      setStructuredData(parsed);
+    } catch (err) {
+      console.error("Error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAnalyzeClick = () => {
-    if (cropInput.trim()) setCrop(cropInput);
+  // --- Parse Gemini Text Response ---
+  const parseGeminiResponse = (response) => {
+    const lines = response.split("\n").map((l) => l.trim());
+    let soilCondition = "";
+    let values = {};
+    let organic = [];
+    let inorganic = [];
+    let section = "";
+
+    lines.forEach((line) => {
+      if (line.startsWith("The soil condition is:"))
+        soilCondition = line.split(":")[1]?.trim();
+      else if (line.includes("Nitrogen (N):"))
+        values.n = line.split(":")[1]?.trim();
+      else if (line.includes("Phosphorus (P):"))
+        values.p = line.split(":")[1]?.trim();
+      else if (line.includes("Potassium (K):"))
+        values.k = line.split(":")[1]?.trim();
+      else if (line.includes("pH:")) values.ph = line.split(":")[1]?.trim();
+      else if (line.includes("Moisture")) values.moisture = line.split(":")[1]?.trim();
+      else if (line.includes("Organic:")) section = "organic";
+      else if (line.includes("Inorganic:")) section = "inorganic";
+      else if (/^\d+\./.test(line)) {
+        const item = line.replace(/^\d+\.\s*/, "");
+        if (section === "organic") organic.push(item);
+        else if (section === "inorganic") inorganic.push(item);
+      }
+    });
+
+    return { soilCondition, values, organic, inorganic };
   };
-
-  if (!soilData)
-    return (
-      <div className="flex items-center justify-center h-screen text-green-700 font-semibold bg-green-50">
-        Waiting for soil data from Firebase...
-      </div>
-    );
-
-  if (loading) return <LoadingScreen cropName={crop} />;
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center flex flex-col items-center justify-center p-6 relative"
-      style={{
-        backgroundImage: `url('https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?q=80&w=2070&auto=format&fit=crop')`,
-      }}
-    >
-      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm"></div>
-      <div className="relative bg-white/80 backdrop-blur-lg shadow-2xl rounded-3xl p-8 max-w-4xl w-full border border-white/30">
-        <h2 className="text-4xl font-bold text-green-800 mb-6 text-center">
-          🌾 Soil Health Analysis
+  className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+  style={{
+    backgroundImage: `url(${bgImage})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  }}
+>
+  {/* White transparent overlay */}
+  <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px]" />
+      <div className="bg-white/80 backdrop-blur-lg shadow-2xl rounded-3xl p-8 max-w-4xl w-full border border-white/30">
+        <h2 className="text-3xl font-bold text-green-800 mb-6 text-center">
+          🌱 Soil Health Analyzer
         </h2>
 
-        {/* Crop Input */}
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-2 mb-8">
+        {/* Input Section */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
           <input
             type="text"
             value={cropInput}
             onChange={(e) => setCropInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleAnalyzeClick()}
-            placeholder="Enter crop/plant name..."
-            className="w-full sm:w-auto flex-grow border border-green-300 rounded-xl px-4 py-3 text-green-800 placeholder-green-600/50 focus:outline-none focus:ring-2 focus:ring-green-400 text-lg"
+            placeholder="Enter crop name..."
+            className="flex-grow px-4 py-3 border border-green-300 rounded-xl text-green-700 focus:ring-2 focus:ring-green-400 outline-none"
           />
           <button
-            onClick={handleAnalyzeClick}
-            className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-8 rounded-xl transition-all transform hover:scale-105 text-lg"
+            onClick={analyzeSoil}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-xl transition-all hover:scale-105"
           >
-            Analyze
+            {loading ? "Analyzing..." : "Analyze"}
           </button>
         </div>
 
-        {analysis ? (
-          <ParsedResult text={analysis} />
-        ) : (
-          <p className="text-gray-600 text-center text-lg">
-            Enter a crop to start the analysis.
+        {/* Circles appear AFTER analyze click */}
+        {showCircles && soilData && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 justify-items-center mb-10">
+            <NutrientCircle label="Nitrogen (N)" value={soilData.n} color="#16a34a" />
+            <NutrientCircle label="Phosphorus (P)" value={soilData.p} color="#facc15" />
+            <NutrientCircle label="Potassium (K)" value={soilData.k} color="#ef4444" />
+            <NutrientCircle label="pH" value={soilData.ph} color="#3b82f6" />
+            <NutrientCircle label="Moisture" value={soilData.moisture} color="#14b8a6" />
+            {/* <NutrientCircle label="Temp (°C)" value={soilData.temperature} color="#f97316" /> */}
+          </div>
+        )}
+
+        {/* Gemini structured output */}
+        {structuredData && (
+          <div className="bg-green-50 rounded-xl p-6 border border-green-200 shadow-inner text-green-900 animate-fade-in">
+            <h3 className="text-2xl font-semibold text-green-800 mb-3 text-center">
+              🌿 AI Recommendations
+            </h3>
+
+            <p className="text-lg font-medium mb-2">
+              <strong>Condition:</strong> {structuredData.soilCondition}
+            </p>
+
+            <div className="grid grid-cols-2 gap-2 text-lg mb-6">
+              <p>🌾 N: {structuredData.values.n}</p>
+              <p>🌻 P: {structuredData.values.p}</p>
+              <p>🍃 K: {structuredData.values.k}</p>
+              <p>⚗️ pH: {structuredData.values.ph}</p>
+              <p>💧 Moisture: {structuredData.values.moisture}</p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-xl font-semibold text-green-700 mb-2">
+                  🌱 Organic Materials
+                </h4>
+                <ul className="list-disc ml-6 space-y-1">
+                  {structuredData.organic.map((item, i) => (
+                    <li key={i} className="animate-fade-in">{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-xl font-semibold text-green-700 mb-2">
+                  🧪 Inorganic Materials
+                </h4>
+                <ul className="list-disc ml-6 space-y-1">
+                  {structuredData.inorganic.map((item, i) => (
+                    <li key={i} className="animate-fade-in">{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!structuredData && !loading && (
+          <p className="text-center text-gray-600 text-lg mt-4">
+            Enter a crop and click "Analyze" to begin.
           </p>
         )}
       </div>
     </div>
   );
 }
-
-// --- Typewriter effect ---
-function useTypewriter(text) {
-  const [displayed, setDisplayed] = useState("");
-  useEffect(() => {
-    let i = 0;
-    const interval = setInterval(() => {
-      setDisplayed(text.slice(0, i++));
-      if (i > text.length) clearInterval(interval);
-    }, 15);
-    return () => clearInterval(interval);
-  }, [text]);
-  return displayed;
-}
-
-// --- Parsed Result Display ---
-const ParsedResult = ({ text }) => {
-  const typedText = useTypewriter(text);
-  const lines = typedText.split("\n");
-
-  const soilLines = lines.filter((l) =>
-    l.match(/(Nitrogen|Phosphorus|Potassium|pH|Moisture)/)
-  );
-  const suitabilityLine = lines.find((l) => l.startsWith("SUITABILITY:"));
-  const organicIndex = lines.findIndex((l) => l.startsWith("ORGANIC:"));
-  const inorganicIndex = lines.findIndex((l) => l.startsWith("INORGANIC:"));
-  const organic = lines.slice(organicIndex + 1, inorganicIndex).filter(Boolean);
-  const inorganic = lines.slice(inorganicIndex + 1).filter(Boolean);
-  const isSuitable = suitabilityLine?.toLowerCase().includes("yes");
-
-  return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Suitability */}
-      <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-100 border border-slate-200">
-        {isSuitable ? (
-          <span className="text-green-500 text-3xl">✅</span>
-        ) : (
-          <span className="text-red-500 text-3xl">❌</span>
-        )}
-        <div>
-          <h4 className="text-lg font-bold text-slate-800">
-            Suitability: {isSuitable ? "Yes" : "No"}
-          </h4>
-          <p className="text-slate-600">
-            {suitabilityLine?.split("-")[1]?.trim()}
-          </p>
-        </div>
-      </div>
-
-      {/* Soil Condition */}
-      <div className="bg-slate-100 p-6 rounded-xl border border-slate-200">
-        <h3 className="text-xl font-bold text-green-700 mb-4">🌱 Soil Condition</h3>
-        <ul className="space-y-3">
-          {soilLines.map((line, i) => {
-            const [key, value] = line.split(":").map((s) => s.trim());
-            return (
-              <li
-                key={i}
-                className="flex justify-between text-green-800 font-medium pb-2 border-b border-green-100 last:border-b-0"
-              >
-                <span>{key}</span>
-                <span className="font-bold">{value}</span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-
-      {/* Recommendations */}
-      <div className="bg-slate-100 p-6 rounded-xl border border-slate-200">
-        <h3 className="text-xl font-bold text-green-700 mb-4">
-          🌿 Improvement Recommendations
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-semibold text-green-800 mb-2">Organic</h4>
-            <ul className="space-y-2">
-              {organic.map((item, i) => (
-                <li key={i} className="bg-green-100/70 p-3 rounded-lg text-green-900">
-                  {item.replace(/^\d+\.\s*/, "")}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-green-800 mb-2">Inorganic</h4>
-            <ul className="space-y-2">
-              {inorganic.map((item, i) => (
-                <li key={i} className="bg-green-100/70 p-3 rounded-lg text-green-900">
-                  {item.replace(/^\d+\.\s*/, "")}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};

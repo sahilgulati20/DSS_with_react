@@ -13,12 +13,14 @@ import Crops from "./components/Crops";
 import Frame from "./components/Frame";
 import SurroundingWeather from "./weather_components/surrounding_weather";
 import RoomTemp from "./weather_components/room_temp";
-import soilhealth from "./soilhealth_components/soil_health";
-import CropRec from "./components/PlantRec.jsx";
+import SoilHealth from "./soilhealth_components/soil_health";
+import PlantTime from "./components/PlantRec.jsx";
+import FireAlert from "./fire_components/fire_alert.jsx"; // ✅ Fixed: Capitalized import
+import CallBot from "./callbot_components/call_bot.jsx";
 
-// Service detail pages (you'll create these)
+// Service detail pages
 import WeatherPage from "./pages/WeatherPage";
-import SoilCondition from "./soilhealth_components/soil_health";
+
 function App() {
   return (
     <Router>
@@ -44,18 +46,20 @@ function App() {
         <Route path="/weather" element={<WeatherPage />} />
         <Route path="/surrounding-weather" element={<SurroundingWeather />} />
         <Route path="/surrounding_weather" element={<SurroundingWeather />} />
-
         <Route path="/room-temp" element={<RoomTemp />} />
-        <Route path="/plant_rec" element={<CropRec/>} />
+        <Route path="/plant-seed" element={<PlantTime />} />
+        <Route path="/soil-health" element={<SoilHealth />} />
 
-        <Route path="/soil-health" element={<SoilCondition />} />
-        
-        
-        {/* Catch all route - redirect to home */}
+        {/* ✅ Fixed route: Component name starts with uppercase */}
+        <Route path="/fire-alert" element={<FireAlert />} />
+
+        <Route path="/call-bot" element={<CallBot />} />
+
+        {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
-} 
+}
 
 export default App;
