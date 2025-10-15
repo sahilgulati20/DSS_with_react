@@ -59,7 +59,7 @@ export default function FireAlert() {
   useEffect(() => {
     if (data?.flame_status === "Fire Detected") {
       setIsCalling(true);
-      fetch("http://localhost:3000/make-call", { method: "POST" })
+      fetch("https://crop-service-wkxt.onrender.com/make-call", { method: "POST" })
         .then((res) => res.json())
         .then(() => setIsCalling(false))
         .catch(() => setIsCalling(false));
