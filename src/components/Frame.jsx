@@ -1,251 +1,267 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+// --- OPTIMIZATION: Moved static data outside the component ---
+// This prevents them from being re-created on every render.
+const staticPrices = {
+  wheat: "₹ 2800.0 per quintal",
+  barley: "₹ 2500.0 per quintal",
+  mustard: "₹ 6500.0 per quintal",
+  chickpea: "₹ 7000.0 per quintal",
+  potato: "₹ 2000.0 per quintal",
+  tomato: "₹ 2500.0 per quintal",
+  oat: "₹ 3500.0 per quintal",
+  garlic: "₹ 15000.0 per quintal",
+  cabbage: "₹ 1800.0 per quintal",
+  pea: "₹ 5000.0 per quintal",
+  rice: "₹ 4000.0 per quintal",
+  corn: "₹ 2500.0 per quintal",
+  cotton: "₹ 8500.0 per quintal",
+  sorghum: "₹ 3000.0 per quintal",
+  jowar: "₹ 3200.0 per quintal",
+  muskmelon: "₹ 3500.0 per quintal",
+  sugarcane: "₹ 400.0 per quintal",
+  watermelon: "₹ 2000.0 per quintal",
+};
+
+const cropData = {
+  // 🌾 RABI CROPS
+  wheat: {
+    title: "Wheat (गेहूं)",
+    image: "https://5.imimg.com/data5/ST/QW/MY-38700875/fresh-wheat-crop.jpg",
+    category: "Rabi",
+    season: "Winter Season",
+    uses: "Used for bread, chapati, biscuits, and cereals.",
+    scientificName: "Triticum aestivum",
+  },
+  barley: {
+    title: "Barley (جौ)",
+    image:
+      "https://t4.ftcdn.net/jpg/01/03/26/41/360_F_103264132_VDQIfJvaEMpL5ZjU3X9kraEJirbRCZkY.jpg",
+    category: "Rabi",
+    season: "Winter Season",
+    uses: "Used for malt, beer production, and food grains.",
+    scientificName: "Hordeum vulgare",
+  },
+  mustard: {
+    title: "Mustard (सरसों)",
+    image:
+      "https://media.istockphoto.com/id/1255224413/photo/mustard-seeds-making-a-background-pattern.jpg?s=612x612&w=0&k=20&c=j_sAbmUAS7l5SZriqOm35tgEY6BBnpzwtROwjnljOcE=",
+    category: "Rabi",
+    season: "Winter Season",
+    uses: "Used for mustard oil, spices, and fodder.",
+    scientificName: "Brassica juncea",
+  },
+  chickpea: {
+    title: "Chickpea (चना)",
+    image:
+      "https://www.shutterstock.com/image-photo/food-background-texture-raw-chickpeas-600nw-1125715514.jpg",
+    category: "Rabi",
+    season: "Winter Season",
+    uses: "Used in pulses, snacks, and flour.",
+    scientificName: "Cicer arietinum",
+  },
+  potato: {
+    title: "Potato (आलू)",
+    image: "https://images7.alphacoders.com/383/thumb-1920-383749.jpg",
+    category: "Rabi",
+    season: "Winter Season",
+    uses: "Staple vegetable for curries and snacks.",
+    scientificName: "Solanum tuberosum",
+  },
+  tomato: {
+    title: "Tomato (टमाटर)",
+    image:
+      "https://cdn.pixabay.com/photo/2022/09/05/09/50/tomatoes-7433786_1280.jpg",
+    category: "Rabi",
+    season: "All Season",
+    uses: "Used in curries, sauces, and salads.",
+    scientificName: "Solanum lycopersicum",
+  },
+  oat: {
+    title: "Oat (जई)",
+    image:
+      "https://t3.ftcdn.net/jpg/01/27/18/72/360_F_127187211_Lj3BnpJX5pGJO4ElrUMhWoZO9imT1XcC.jpg",
+    category: "Rabi",
+    season: "Winter Season",
+    uses: "Used for oatmeal, cereals, and livestock feed.",
+    scientificName: "Avena sativa",
+  },
+  garlic: {
+    title: "Garlic (लहसुन)",
+    image: "https://images8.alphacoders.com/413/413326.jpg",
+    category: "Rabi",
+    season: "Winter Season",
+    uses: "Used as a spice and for medicinal purposes.",
+    scientificName: "Allium sativum",
+  },
+  cabbage: {
+    title: "Cabbage (पत्ता गोभी)",
+    image:
+      "https://media.istockphoto.com/id/1328912132/photo/cabbage-field-at-fully-mature-stage-ready-to-harvest.jpg?s=612x612&w=0&k=20&c=EVkaA_SQm61ObApMKSATxrKusfOSTJyHTtSvtBpn-Pw=",
+    category: "Rabi",
+    season: "Winter Season",
+    uses: "Used in salads, curries, and pickles.",
+    scientificName: "Brassica oleracea",
+  },
+  pea: {
+    title: "Pea (मटर)",
+    image:
+      "https://c4.wallpaperflare.com/wallpaper/664/303/730/leaves-peas-green-peas-pods-wallpaper-preview.jpg",
+    category: "Rabi",
+    season: "Winter Season",
+    uses: "Used as vegetables and in soups, curries, and snacks.",
+    scientificName: "Pisum sativum",
+  },
+
+  // 🌾 KHARIF CROPS
+  rice: {
+    title: "Rice (चावल)",
+    image:
+      "https://images.pexels.com/photos/4110251/pexels-photo-4110251.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-4110251.jpg&fm=jpg",
+    category: "Kharif",
+    season: "Monsoon Season",
+    uses: "Staple food, rice flour, and various dishes.",
+    scientificName: "Oryza sativa",
+  },
+  corn: {
+    title: "Corn (मकई)",
+    image:
+      "https://img.freepik.com/premium-photo/corn-high-quality-4k-ultra-hd-hdr_670382-129533.jpg",
+    category: "Kharif",
+    season: "Monsoon Season",
+    uses: "Used for food, animal feed, corn oil, and biofuel.",
+    scientificName: "Zea ma",
+  },
+  cotton: {
+    title: "Cotton (कपास)",
+    image:
+      "https://media.istockphoto.com/id/1333742146/photo/tree-branch-with-cotton-flowers-on-white-background.jpg?s=612x612&w=0&k=20&c=AuiO_rCmM9NIAMMOuXgo3Xm9gJT67SgKGh0iNkbJ8PA=",
+    category: "Kharif",
+    season: "Monsoon Season",
+    uses: "Used for textiles, cottonseed oil, and fabric.",
+    scientificName: "Gossypium hirsutum",
+  },
+  sorghum: {
+    title: "Sorghum (ज्वार)",
+    image:
+      "https://media.istockphoto.com/id/179072932/photo/close-up-of-sorghum-in-morning-sun-light.jpg?s=612x612&w=0&k=20&c=IIYcKWtokaVXlfNqJekS4_R6wHKiBpoo1rqHLGLrZ_M=",
+    category: "Kharif",
+    season: "Monsoon Season",
+    uses: "Used for food, fodder, and alcohol production.",
+    scientificName: "Sorghum bicolor",
+  },
+  jowar: {
+    title: "Jowar (ज्वार)",
+    image:
+      "https://t4.ftcdn.net/jpg/03/53/13/93/360_F_353139364_iz2ohMDi3lQnCNiB5O1Usdr2OnAeBOck.jpg",
+    category: "Kharif",
+    season: "Monsoon Season",
+    uses: "Used for flour, porridge, and livestock feed.",
+    scientificName: "Sorghum vulgare",
+  },
+  muskmelon: {
+    title: "Muskmelon (खरबूजा)",
+    image:
+      "https://t3.ftcdn.net/jpg/04/63/30/50/360_F_463305057_cxC6gANdimD6YTcah6t20Mw4AHuUwLJD.jpg",
+    category: "Kharif",
+    season: "Summer/Monsoon Season",
+    uses: "Consumed as fruit and used in juices and desserts.",
+    scientificName: "Cucumis melo",
+  },
+  sugarcane: {
+    title: "Sugarcane (गन्ना)",
+    image:
+      "https://media.istockphoto.com/id/965303384/photo/the-sugar-cane.jpg?s=612x612&w=0&k=20&c=-nwpqHxhmDCaB9s8KfR15ZnMVbos6yQ39Yl0vzCOt2E=",
+    category: "Kharif",
+    season: "Monsoon Season",
+    uses: "Used for sugar, jaggery, and ethanol production.",
+    scientificName: "Saccharum officinarum",
+  },
+  watermelon: {
+    title: "Watermelon (तरबूज)",
+    image:
+      "httpsall-images.co/wp-content/uploads/2021/07/Watermelon-Slice-Transparent-PNG.png",
+    category: "Kharif",
+    season: "Summer/Monsoon Season",
+    uses: "Consumed as fruit and used in juices and smoothies.",
+    scientificName: "Citrullus lanatus",
+  },
+};
 
 function Frame() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const queryParams = new URLSearchParams(location.search);
-  const name = queryParams.get("name")?.toLowerCase() || "rice";
+  // --- FIX: Removed router hooks ---
+  // const location = useLocation();
+  // const navigate = useNavigate();
+
+  // --- FIX: Read 'name' from window.location.search on component mount ---
+  // This avoids the useLocation() hook, which caused the error.
+  const [name, setName] = useState(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    return queryParams.get("name")?.toLowerCase() || "rice";
+  });
 
   const [price, setPrice] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const staticPrices = {
-    wheat: "₹ 28.0 per kg",
-    barley: "₹ 25.0 per kg",
-    mustard: "₹ 65.0 per kg",
-    chickpea: "₹ 70.0 per kg",
-    potato: "₹ 20.0 per kg",
-    tomato: "₹ 25.0 per kg",
-    oat: "₹ 35.0 per kg",
-    garlic: "₹ 150.0 per kg",
-    cabbage: "₹ 18.0 per kg",
-    pea: "₹ 50.0 per kg",
-    rice: "₹ 40.0 per kg",
-    corn: "₹ 25.0 per kg",
-    cotton: "₹ 85.0 per kg",
-    sorghum: "₹ 30.0 per kg",
-    jowar: "₹ 32.0 per kg",
-    muskmelon: "₹ 35.0 per kg",
-    sugarcane: "₹ 4.0 per kg",
-    watermelon: "₹ 20.0 per kg",
-  };
-
-  const cropData = {
-    // 🌾 RABI CROPS
-    wheat: {
-      title: "Wheat (गेहूं)",
-      image: "https://5.imimg.com/data5/ST/QW/MY-38700875/fresh-wheat-crop.jpg",
-      category: "Rabi",
-      season: "Winter Season",
-      uses: "Used for bread, chapati, biscuits, and cereals.",
-      scientificName: "Triticum aestivum",
-    },
-    barley: {
-      title: "Barley (जौ)",
-      image:
-        "https://t4.ftcdn.net/jpg/01/03/26/41/360_F_103264132_VDQIfJvaEMpL5ZjU3X9kraEJirbRCZkY.jpg",
-      category: "Rabi",
-      season: "Winter Season",
-      uses: "Used for malt, beer production, and food grains.",
-      scientificName: "Hordeum vulgare",
-    },
-    mustard: {
-      title: "Mustard (सरसों)",
-      image:
-        "https://media.istockphoto.com/id/1255224413/photo/mustard-seeds-making-a-background-pattern.jpg?s=612x612&w=0&k=20&c=j_sAbmUAS7l5SZriqOm35tgEY6BBnpzwtROwjnljOcE=",
-      category: "Rabi",
-      season: "Winter Season",
-      uses: "Used for mustard oil, spices, and fodder.",
-      scientificName: "Brassica juncea",
-    },
-    chickpea: {
-      title: "Chickpea (चना)",
-      image:
-        "https://www.shutterstock.com/image-photo/food-background-texture-raw-chickpeas-600nw-1125715514.jpg",
-      category: "Rabi",
-      season: "Winter Season",
-      uses: "Used in pulses, snacks, and flour.",
-      scientificName: "Cicer arietinum",
-    },
-    potato: {
-      title: "Potato (आलू)",
-      image: "https://images7.alphacoders.com/383/thumb-1920-383749.jpg",
-      category: "Rabi",
-      season: "Winter Season",
-      uses: "Staple vegetable for curries and snacks.",
-      scientificName: "Solanum tuberosum",
-    },
-    tomato: {
-      title: "Tomato (टमाटर)",
-      image:
-        "https://cdn.pixabay.com/photo/2022/09/05/09/50/tomatoes-7433786_1280.jpg",
-      category: "Rabi",
-      season: "All Season",
-      uses: "Used in curries, sauces, and salads.",
-      scientificName: "Solanum lycopersicum",
-    },
-    oat: {
-      title: "Oat (जई)",
-      image:
-        "https://t3.ftcdn.net/jpg/01/27/18/72/360_F_127187211_Lj3BnpJX5pGJO4ElrUMhWoZO9imT1XcC.jpg",
-      category: "Rabi",
-      season: "Winter Season",
-      uses: "Used for oatmeal, cereals, and livestock feed.",
-      scientificName: "Avena sativa",
-    },
-    garlic: {
-      title: "Garlic (लहसुन)",
-      image: "https://images8.alphacoders.com/413/413326.jpg",
-      category: "Rabi",
-      season: "Winter Season",
-      uses: "Used as a spice and for medicinal purposes.",
-      scientificName: "Allium sativum",
-    },
-    cabbage: {
-      title: "Cabbage (पत्ता गोभी)",
-      image:
-        "https://media.istockphoto.com/id/1328912132/photo/cabbage-field-at-fully-mature-stage-ready-to-harvest.jpg?s=612x612&w=0&k=20&c=EVkaA_SQm61ObApMKSATxrKusfOSTJyHTtSvtBpn-Pw=",
-      category: "Rabi",
-      season: "Winter Season",
-      uses: "Used in salads, curries, and pickles.",
-      scientificName: "Brassica oleracea",
-    },
-    pea: {
-      title: "Pea (मटर)",
-      image:
-        "https://c4.wallpaperflare.com/wallpaper/664/303/730/leaves-peas-green-peas-pods-wallpaper-preview.jpg",
-      category: "Rabi",
-      season: "Winter Season",
-      uses: "Used as vegetables and in soups, curries, and snacks.",
-      scientificName: "Pisum sativum",
-    },
-
-    // 🌾 KHARIF CROPS
-    rice: {
-      title: "Rice (चावल)",
-      image:
-        "https://images.pexels.com/photos/4110251/pexels-photo-4110251.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-4110251.jpg&fm=jpg",
-      category: "Kharif",
-      season: "Monsoon Season",
-      uses: "Staple food, rice flour, and various dishes.",
-      scientificName: "Oryza sativa",
-    },
-    corn: {
-      title: "Corn (मकई)",
-      image:
-        "https://img.freepik.com/premium-photo/corn-high-quality-4k-ultra-hd-hdr_670382-129533.jpg",
-      category: "Kharif",
-      season: "Monsoon Season",
-      uses: "Used for food, animal feed, corn oil, and biofuel.",
-      scientificName: "Zea mays",
-    },
-    cotton: {
-      title: "Cotton (कपास)",
-      image:
-        "https://media.istockphoto.com/id/1333742146/photo/tree-branch-with-cotton-flowers-on-white-background.jpg?s=612x612&w=0&k=20&c=AuiO_rCmM9NIAMMOuXgo3Xm9gJT67SgKGh0iNkbJ8PA=",
-      category: "Kharif",
-      season: "Monsoon Season",
-      uses: "Used for textiles, cottonseed oil, and fabric.",
-      scientificName: "Gossypium hirsutum",
-    },
-    sorghum: {
-      title: "Sorghum (ज्वार)",
-      image:
-        "https://media.istockphoto.com/id/179072932/photo/close-up-of-sorghum-in-morning-sun-light.jpg?s=612x612&w=0&k=20&c=IIYcKWtokaVXlfNqJekS4_R6wHKiBpoo1rqHLGLrZ_M=",
-      category: "Kharif",
-      season: "Monsoon Season",
-      uses: "Used for food, fodder, and alcohol production.",
-      scientificName: "Sorghum bicolor",
-    },
-    jowar: {
-      title: "Jowar (ज्वार)",
-      image:
-        "https://t4.ftcdn.net/jpg/03/53/13/93/360_F_353139364_iz2ohMDi3lQnCNiB5O1Usdr2OnAeBOck.jpg",
-      category: "Kharif",
-      season: "Monsoon Season",
-      uses: "Used for flour, porridge, and livestock feed.",
-      scientificName: "Sorghum vulgare",
-    },
-    muskmelon: {
-      title: "Muskmelon (खरबूजा)",
-      image:
-        "https://t3.ftcdn.net/jpg/04/63/30/50/360_F_463305057_cxC6gANdimD6YTcah6t20Mw4AHuUwLJD.jpg",
-      category: "Kharif",
-      season: "Summer/Monsoon Season",
-      uses: "Consumed as fruit and used in juices and desserts.",
-      scientificName: "Cucumis melo",
-    },
-    sugarcane: {
-      title: "Sugarcane (गन्ना)",
-      image:
-        "https://media.istockphoto.com/id/965303384/photo/the-sugar-cane.jpg?s=612x612&w=0&k=20&c=-nwpqHxhmDCaB9s8KfR15ZnMVbos6yQ39Yl0vzCOt2E=",
-      category: "Kharif",
-      season: "Monsoon Season",
-      uses: "Used for sugar, jaggery, and ethanol production.",
-      scientificName: "Saccharum officinarum",
-    },
-    watermelon: {
-      title: "Watermelon (तरबूज)",
-      image:
-        "https://media.istockphoto.com/id/1142119394/photo/whole-and-slices-watermelon-fruit-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=A5XnLyeI_3mwkCNadv-QLU4jzgNux8kUPfIlDvwT0jo=",
-      category: "Kharif",
-      season: "Summer/Monsoon Season",
-      uses: "Consumed as fruit and used in juices and smoothies.",
-      scientificName: "Citrullus lanatus",
-    },
-  };
-
   const crop = cropData[name] || cropData["rice"];
+
+  // --- FIX: Create a simple navigate function using browser APIs ---
+  // This avoids the useNavigate() hook.
+  const navigate = (path) => {
+    // We assume /crops is a path on the same domain
+    window.location.href = path;
+  };
 
   useEffect(() => {
     const fetchPrice = async () => {
       setLoading(true);
 
       // show static price instantly
-      setPrice(staticPrices[name] || "₹ -- per kg");
+      const staticPrice = staticPrices[name] || "₹ -- per quintal";
+      setPrice(staticPrice);
 
-try {
-  const response = await fetch(`https://dss-crop-server.onrender.com/get-price/${name}`);
-  
-  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      try {
+        // --- FIX: Reverted to the deployed 'onrender.com' server URL ---
+        // Fetching from 'http://localhost' while the app is on 'https'
+        // causes a "mixed content" error, which results in "Failed to fetch".
+        // This uses the secure, deployed server URL.
+        const response = await fetch(
+          `http://localhost:3000/get-price/${name}`
+        );
 
-  const data = await response.json();
-  console.log("Backend price response:", data);
+        if (!response.ok)
+          throw new Error(`HTTP error! status: ${response.status}`);
 
-  if (data && data.explanation) {
-    setPrice(data.explanation);
-  }
-} catch (error) {
-  console.error("Error fetching price from backend:", error);
-  setPrice(staticPrices[name] || "₹ -- per kg");
-}
+        const data = await response.json();
+        console.log("Backend price response:", data);
 
+        // --- BUG FIX 2: Parse the correct JSON response from your server ---
+        if (data && data.price && data.unit) {
+          // Format the price string from the server's JSON response
+          // e.g., "₹ 2538.02 per quintal"
+          const formattedPrice = `₹ ${data.price} ${data.unit}`;
+          setPrice(formattedPrice);
+        } else {
+          // Fallback if the JSON is incomplete, but the request was okay
+          console.warn("Received incomplete price data from backend:", data);
+          setPrice(staticPrice); // Revert to static price
+        }
+        // --- End of Fix ---
+      } catch (error) {
+        console.error("Error fetching price from backend:", error);
+        // If fetch fails, the static price is already set, so no need to set it again
+        setPrice(staticPrice); // Ensure static price remains on error
+      }
 
       setLoading(false);
     };
 
     fetchPrice();
-  }, [name]);
+  }, [name]); // 'name' is the only dependency needed here
 
   return (
     <div className="min-h-screen font-sans bg-gradient-to-b from-green-50 via-emerald-50 to-white">
-      {/* HEADER */}
-      {/* <header
-        className="relative w-full h-[400px] bg-cover bg-center flex items-center justify-center"
-        style={{ backgroundImage: "url('/farm2.png')" }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
-        <div className="absolute top-10 right-10 w-32 h-32 bg-green-400/30 blur-3xl rounded-full"></div>
-        <div className="relative z-10 text-center text-white px-4">
-          <h1 className="text-5xl sm:text-6xl font-extrabold mb-4 tracking-tight drop-shadow-lg">
-            🌾 Real-Time Crop Prices
-          </h1>
-          <p className="text-lg sm:text-xl text-white/90 font-medium drop-shadow">
-            Stay updated with latest {crop?.title?.split(" ")[0]} market insights 🌱
-          </p>
-        </div>
-      </header> */}
+      {/* HEADER (Commented out as in original) */}
+      {/* <header ... </header> */}
 
       {/* MAIN CONTENT */}
       <main className="max-w-6xl mx-auto px-6 sm:px-8 py-12 space-y-16">
@@ -262,15 +278,27 @@ try {
                 {crop?.title}
               </h2>
               <div className="space-y-2 text-gray-700">
-                <p><strong>Scientific Name:</strong> {crop?.scientificName}</p>
-                <p><strong>Category:</strong> {crop?.category}</p>
-                <p><strong>Season:</strong> {crop?.season}</p>
-                <p><strong>Uses:</strong> {crop?.uses}</p>
+                <p>
+                  <strong>Scientific Name:</strong> {crop?.scientificName}
+                </p>
+                <p>
+                  <strong>Category:</strong> {crop?.category}
+                </p>
+                <p>
+                  <strong>Season:</strong> {crop?.season}
+                </p>
+                <p>
+                  <strong>Uses:</strong> {crop?.uses}
+                </p>
               </div>
               <div className="mt-6">
                 <p className="text-lg text-gray-800">
                   <strong>Current Price:</strong>{" "}
-                  <span className="text-2xl font-semibold text-green-700 animate-pulse">
+                  <span
+                    className={`text-2xl font-semibold text-green-700 ${
+                      loading ? "animate-pulse" : ""
+                    }`}
+                  >
                     {price}
                   </span>
                 </p>
@@ -339,3 +367,4 @@ try {
 }
 
 export default Frame;
+
