@@ -225,7 +225,7 @@ function Frame() {
         // causes a "mixed content" error, which results in "Failed to fetch".
         // This uses the secure, deployed server URL.
         const response = await fetch(
-          `http://localhost:3000/get-price/${name}`
+          `https://dss-crop-server.onrender.com/get-price/${name}`
         );
 
         if (!response.ok)
