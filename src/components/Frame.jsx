@@ -206,7 +206,7 @@ function Frame() {
       setPrice(staticPrices[name] || "₹ -- per kg");
 
 try {
-  const response = await fetch(`https://crop-service-wkxt.onrender.com/get-price/${name}`);
+  const response = await fetch(`https://dss-crop-server.onrender.com/get-price/${name}`);
   
   if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
